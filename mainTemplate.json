@@ -1,0 +1,272 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "templateBaseUrl": { 
+      "type": "string",
+      "metadata": {
+        "description": "Base URL for Marketplace", 
+        "artifactsBaseUrl": "" 
+      },
+      "defaultValue": "https://raw.githubusercontent.com/tomconte/LAMPHA" 
+    },
+    "location": {
+      "type": "string",
+      "metadata": {
+        "description": "The location where the solution will be deployed."
+      }
+    },
+    "authenticationType": {
+      "type": "string",
+      "allowedValues": [
+        "password",
+        "sshPublicKey"
+      ]
+    },
+    "adminUsername": {
+      "type": "string",
+      "metadata": {
+        "description": "User name for the Virtual Machine."
+      }
+    },
+    "adminPassword": {
+      "type": "securestring",
+      "defaultValue": "", 
+      "metadata": {
+        "description": "Password for the Virtual Machine. Not used if authenticationType of sshPublicKey."
+      }
+    },
+    "sshPublicKey": {
+      "type": "string",
+      "defaultValue": "", 
+      "metadata": {
+        "description": "SSH RSA public key file as a string. Not used if authenticationType of password."
+      }
+    },
+    "publicIPNewOrExisting": {
+      "type": "string",
+      "allowedValues": [
+        "new",
+        "existing"
+      ]
+    },
+    "publicIPName": {
+      "type": "string"
+    },
+    "dnsNameForPublicIP": {
+      "type": "string",
+      "metadata": {
+        "description": "Unique DNS Name for the Public IP used to access the Web Front-End."
+      }
+    },
+    "vnetNewOrExisting": {
+      "type": "string",
+      "allowedValues": [
+        "new",
+        "existing"
+      ]
+    },
+    "vnetName": {
+      "type": "string"
+    },
+    "vnetPrefix": {
+      "type": "string",
+      "defaultValue": ""
+    },
+    "vnetSubnet1Name": {
+      "type": "string"
+    },
+    "vnetSubnet1Prefix": {
+      "type": "string"
+    },
+    "vnetSubnet2Name": {
+      "type": "string"
+    },
+    "vnetSubnet2Prefix": {
+      "type": "string"
+    },
+    "storageAccountNewOrExisting": {
+      "type": "string",
+      "allowedValues": [
+        "new",
+        "existing"
+      ]
+    },
+    "storageAccountName": {
+      "type": "string",
+      "metadata": {
+        "description": "Unique DNS Name for the Storage Account where the Virtual Machine's disks will be placed."
+      }
+    },
+    "storageAccountType": {
+      "type": "string",
+      "allowedValues": [
+        "Standard_LRS",
+        "Standard_GRS",
+        "Standard_ZRS",
+        "Premium_LRS"
+      ]
+    }
+  },
+  "variables": {
+    "imagePublisher": "Canonical",
+    "imageOffer": "UbuntuServer",
+    "imageSKU": "14.04.3-LTS",
+    "vmStorageAccountContainerName": "vhds",
+    "vnetID": "[resourceId('Microsoft.Network/virtualNetworks', parameters('vnetName'))]",
+    "subnet1Ref": "[concat(variables('vnetID'),'/subnets/', parameters('vnetSubnet1Name'))]",
+    "subnet2Ref": "[concat(variables('vnetID'),'/subnets/', parameters('vnetSubnet2Name'))]",
+    "FQDN": "[concat(parameters('dnsNameForPublicIP'), '.', parameters('location'), '.cloudapp.azure.com')]",
+    "storageTemplateLink": "[concat(parameters('templateBaseUrl'), '/', parameters('storageAccountNewOrExisting'), 'StorageAccount.json')]",
+    "vnetTemplateLink": "[concat(parameters('templateBaseUrl'), '/', parameters('vnetNewOrExisting'), 'VirtualNetwork.json')]",
+    "publicIPTemplateLink": "[concat(parameters('templateBaseUrl'), '/', parameters('publicIPNewOrExisting'), 'PublicIP.json')]"
+  },
+  "resources": [
+    {
+      "apiVersion": "2015-01-01",
+      "name": "storageTemplate",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('storageTemplateLink')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "storageAccountName": {
+            "value": "[parameters('storageAccountName')]"
+          },
+          "storageAccountType": {
+            "value" : "[parameters('storageAccountType')]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-01-01",
+      "name": "vnetTemplate",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('vnetTemplateLink')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "vnetName": {
+            "value": "[parameters('vnetName')]"
+          },
+          "vnetPrefix": {
+            "value": "[parameters('vnetPrefix')]"
+          },
+          "vnetSubnet1Name": {
+            "value": "[parameters('vnetSubnet1Name')]"
+          },
+          "vnetSubnet1Prefix": {
+            "value": "[parameters('vnetSubnet1Prefix')]"
+          },
+          "vnetSubnet2Name": {
+            "value": "[parameters('vnetSubnet2Name')]"
+          },
+          "vnetSubnet2Prefix": {
+            "value": "[parameters('vnetSubnet2Prefix')]"
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-01-01",
+      "name": "publicIPTemplate",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('publicIPTemplateLink')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "publicIPName": {
+            "value": "[parameters('publicIPName')]"
+          },
+          "dnsNameForPublicIP": {
+            "value": "[parameters('dnsNameForPublicIP')]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-01-01",
+      "name": "mySQLTemplate",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "https://raw.githubusercontent.com/tomconte/azure-quickstart-templates/LAMPHA/mysql-replication/azuredeploy.json",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "dnsName": {
+            "value": "[concat(parameters('dnsNameForPublicIP'), 'ms')]"
+          },
+          "storageAccountNamePrefix": {
+            "value": "[concat(parameters('storageAccountName'), 'ms')]"
+          },
+          "location": { 
+            "value": "[parameters('location')]"
+          },
+          "vmUserName": {
+            "value": "[parameters('vmUserName')]"
+          },
+          "vmPassword": {
+            "value": "[parameters('vmPassword')]"
+          },
+          "mysqlReplicationPassword": {
+            "value": "[parameters('vmPassword')]"
+          },
+          "mysqlRootPassword": {
+            "value": "[parameters('vmPassword')]"
+          },
+          "mysqlProbePassword": {
+            "value": "[parameters('vmPassword')]"
+          },
+          "vnetNewOrExisting": {
+            "value": "new"
+          },
+          "virtualNetworkName": {
+            "value": "[parameters('vnetName')]"
+          },
+          "dbSubnetName": {
+            "value": "[parameters('vnetSubnet2Name')]"
+          },
+          "dbSubnetStartAddress": {
+            "value": "10.1.1.4"
+          },
+          "imagePublisher": {
+            "value": "[variables('imagePublisher')]"
+          },
+          "imageOffer": {
+            "value": "[variables('imageOffer')]"
+          },
+          "imageSKU": {
+            "value": "[variables('imageSKU')]"
+          }
+        }
+      }
+    }
+  ],
+  "outputs": {
+    "fullyQualifiedDomainName": {
+      "value": "[variables('FQDN')]",
+      "type": "string" 
+    }
+  }
+}

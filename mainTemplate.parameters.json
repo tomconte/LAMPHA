@@ -1,0 +1,57 @@
+{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "adminUsername": {
+      "value": "azureuser"
+    },
+    "authenticationType": {
+      "value": "password"
+    },
+    "adminPassword": {
+      "value": "Pass123!"
+    },
+    "publicIPNewOrExisting": {
+      "value": "new"
+    },
+    "publicIPName": {
+      "value": "lampha-pub-ip"
+    },
+    "dnsNameForPublicIP": {
+      "value": "lampha2202"
+    },
+    "vnetNewOrExisting": {
+      "value": "new"
+    },
+    "vnetName": {
+      "value": "lampha-vnet"
+    },
+    "vnetPrefix": {
+      "value": "10.1.0.0/16"
+    },
+    "vnetSubnet1Name": {
+      "value": "subnet-1"
+    },
+    "vnetSubnet1Prefix": {
+      "value": "10.1.0.0/24"
+    },
+    "vnetSubnet2Name": {
+      "value": "subnet-2"
+    },
+    "vnetSubnet2Prefix": {
+      "value": "10.1.1.0/24"
+    },
+    "storageAccountNewOrExisting": {
+      "value": "new"
+    },
+    "storageAccountName": {
+      "value": "lampha2202"
+    },
+    "storageAccountType": {
+      "value": "Standard_LRS"
+    },
+    "location": {
+      "value": "northeurope"
+    }
+  }
+}
